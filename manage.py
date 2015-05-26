@@ -47,10 +47,12 @@ def cli():
               help='Host to bind to, defaults to 0.0.0.0')
 @click.option('--port', default=5000,
               help='Port of the development server, defaults to 5000')
-def runserver(host, port):
+@click.option('--debug', default=False,
+              help='Run in debugging mode')
+def runserver(host, port, debug):
     """Start a Flask development server"""
     app = create_app()
-    app.run(host=host, port=port, use_reloader=True)
+    app.run(host=host, port=port, debug=debug, use_reloader=True)
 
 
 @cli.command()
