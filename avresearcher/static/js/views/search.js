@@ -37,6 +37,9 @@ function($, _, Backbone, BaseView, searchTemplate, CollectionSelectorView, Query
                     name: options.name
             });
             this.filters = new FiltersView({ model: this.model });
+
+            // Not yet linked to this.other (set outside the constructor).
+            this.linked = false;
         },
 
         render: function(){

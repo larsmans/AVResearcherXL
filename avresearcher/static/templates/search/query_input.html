@@ -1,10 +1,16 @@
 <form>
   <div class="input-container">
     <div>
-      <input class="query" type="text" placeholder="Search...">
+      <input class="query" type="text" placeholder="<%= placeholder %>"
+             value="<%= query %>"/>
     </div>
     <div class="buttons">
       <div class="loading"><img src="/static/img/spinner_small.gif"/></div>
+      <div class="link-queries">
+        <a href="#" title="Link queries">
+          <i class="fa fa-<% if (!linked) { print("un"); } %>link"></i>
+        </a>
+      </div>
       <div class="fields"></div>
       <div class="clear-query">
         <a href="#" title="Reset query"><i class="fa fa-times"></i></a>

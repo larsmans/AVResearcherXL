@@ -384,7 +384,15 @@ slider and active filters) */
     float: left;
 }
 
-.query-input .fields a, .query-input .clear-query a {
+.query-input .link-queries {
+    float: left;
+}
+
+.q1 .link-queries {
+    display: none;
+}
+
+.query-input .fields a, .query-input .clear-query a, .query-input .link-queries a {
     padding: 5px;
     line-height: 45px;
     color: #000;

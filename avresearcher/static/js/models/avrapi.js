@@ -37,7 +37,9 @@ function($, _, Backbone, app){
                 pendingRequests: [],
                 loading: false,
 
-                stats: {}
+                stats: {},
+
+                other: null,
             };
         },
 

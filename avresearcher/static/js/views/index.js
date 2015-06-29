@@ -34,6 +34,10 @@ function($, _, Backbone, app, BaseView, SearchView, TimeseriesView, indexTemplat
                 model: this.query_model_2
             });
 
+            // Tell search views about each other to allow linked querying.
+            this.search_view_1.model.set({other: this.search_view_2.query_input});
+            this.search_view_2.model.set({other: this.search_view_1.query_input});
+
             this.timeseries_view = new TimeseriesView({
                 models: {
                     query1: this.query_model_1,

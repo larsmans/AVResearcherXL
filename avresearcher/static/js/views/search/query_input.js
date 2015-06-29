@@ -13,6 +13,7 @@ function($, _, Backbone, app, FieldsView, queryInputTemplate){
             'focus input.query': 'focusOnInput',
             'focusout input.query': 'focusOnInput',
             'click .input-container': 'focus',
+            'click .link-queries': 'linkQueries',
             'click .clear-query a': 'clearQuery'
         },
 
@@ -21,16 +22,43 @@ function($, _, Backbone, app, FieldsView, queryInputTemplate){
 
             this.model.on('change:loading', this.toggleLoadingIndicator, this);
             this.model.on('change:loading', this.showNoResultsWarning, this);
+
+            // We set the query here to prevent an other.render from wiping
+            // the value in the right query field.
+            this.model.set('ftQuery', '');
         },
 
         render: function(){
-            this.$el.html(_.template(queryInputTemplate));
+            var placeholder = 'Search...';
+            if (this.linked && this.model.get('name') == 'q2') {
+                var other = this.model.get('other');
+                var otherquery = other.model.get('ftQuery');
+                if (otherquery == "") {
+                    placeholder = "Enter background query in left query field";
+                } else {
+                    placeholder = otherquery + " AND...";
+                }
+            }
+
+            this.$el.html(_.template(queryInputTemplate)({
+                linked: this.linked,
+                placeholder: placeholder,
+                query: this.model.get('ftQuery'),
+            }));
             this.fields.setElement(this.$el.find('.fields')).render();
         },
 
         searchOnEnter: function(e){
             e.preventDefault();
             var querystring = this.$('input.query').val().trim();
+            var other = this.model.get('other');
+            if (this.model.get('name') == "q2" && this.linked) {
+                // XXX It would be more elegant to build the AND in avrapi.js.
+                var otherquery = other.$('input.query').val().trim();
+                querystring = '(' + otherquery + ') AND (' + querystring + ')';
+            } else if (this.linked) {
+                other.render();
+            }
 
             // Also log empty query strings
             app.vent.trigger('Logging:clicks', {
@@ -77,6 +105,20 @@ function($, _, Backbone, app, FieldsView, queryInputTemplate){
 
             // Clear the input text
             this.$('input.query').val('');
+            this.model.set('ftQuery', '');
+
+            if (this.linked && this.model.get('name') == 'q1') {
+                this.model.get('other').render();
+            }
+        },
+
+        linkQueries: function(){
+            if (DEBUG) console.log('QueryInputView:linkQueries');
+
+            this.linked = !this.linked;
+            this.model.get('other').linked = this.linked;
+
+            this.render(); // Update link icon.
         },
 
         toggleLoadingIndicator: function() {
