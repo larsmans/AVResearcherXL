@@ -256,17 +256,40 @@ def search():
     payload = json.loads(request.form['payload'])
 
     if isinstance(payload, dict):
-        index = current_app.config['COLLECTIONS_CONFIG'].get(payload.pop('index'))['index_name']
+        index, payload = _payload_to_es(payload)
         results = current_app.es_search.search(index=index, body=payload)
+
     elif isinstance(payload, list):
         body = []
         for query in payload:
-            body.append({'index': current_app.config['COLLECTIONS_CONFIG'].get(query.pop('index'))['index_name']})
+            index, query = _payload_to_es(query)
+            body.append({'index': index})
             body.append(query)
 
         results = current_app.es_search.msearch(body=body)
 
     return jsonify(results)
+
+
+def _payload_to_es(payload):
+    """Fills in details of payload that come from COLLECTIONS_CONFIG.
+
+    Returns (actual index name, payload).
+
+    Assumes payload passed in may be modified.
+    """
+    config = current_app.config['COLLECTIONS_CONFIG']
+    index = payload.pop('index')
+    index_name = config.get(index)['index_name']
+
+    # If we're sorting on date, we need to know what the date field is called.
+    # XXX This should probably be handled in the JavaScript.
+    sort_by_date = get_in(['sort', 0, 'date'], payload)
+    if sort_by_date and get_in([index, 'date_sort_field'], config):
+        sort_spec = payload['sort'][0]
+        sort_spec[config[index]['date_sort_field']] = sort_spec.pop('date')
+
+    return index_name, payload
 
 
 @views.route('/api/count', methods=['POST'])
