@@ -29,8 +29,8 @@ function($, _, Backbone, app, ResultsListView, PaginatorView, AvrApiModel, resul
                'day': 1000*60*60*24
             };
 
-            this.startPubDate = new Date(this.options.bucketStartDate);
-            this.endPubDate = new Date(this.options.bucketStartDate + bucket_duration[this.model.get('interval')]);
+            this.startPubDate = new Date(options.bucketStartDate);
+            this.endPubDate = new Date(options.bucketStartDate + bucket_duration[this.model.get('interval')]);
 
             this.model.modalSearch(this.startPubDate, this.endPubDate);
 
