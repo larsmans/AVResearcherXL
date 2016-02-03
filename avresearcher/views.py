@@ -287,6 +287,9 @@ def count():
 def export_cvs():
     payload1, payload2 = json.loads(request.form['payload'])
 
+    payload1['size'] = 0
+    payload2['size'] = 0
+
     config = current_app.config['COLLECTIONS_CONFIG']
     index1 = config.get(payload1.pop('index'))['index_name']
     index2 = config.get(payload2.pop('index'))['index_name']

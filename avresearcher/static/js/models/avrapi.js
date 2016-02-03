@@ -618,6 +618,28 @@ function($, _, Backbone, app){
             };
         },
 
+        // Construct payload for CSV export.
+        constructExportPayload: function() {
+            var self = this;
+            var payload = this.constructQueryPayload();
+
+            // Delete attributes not needed for CSV export.
+            // XXX refactor me.
+            delete payload.fields;
+            delete payload.from;
+            delete payload.highlight;
+            delete payload.size;
+            delete payload.sort;
+
+            // The only aggregation we want is the DATE_AGGREGATION.
+            var index_config = COLLECTIONS_CONFIG[payload.index];
+            payload.aggs = {};
+            payload.aggs[DATE_AGGREGATION] =
+                index_config.available_aggregations[DATE_AGGREGATION];
+
+            return payload;
+        },
+
         // Navigate to a given page using the existing query (currentPayload)
         paginateToPage: function(page){
             var self = this;

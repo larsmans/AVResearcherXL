@@ -128,23 +128,7 @@ function($, _, Backbone, d3, app, ResultsModal, exportTemplate) {
             var exportForm = this.$el.find('.export');
             var payload = [];
             _.each(this.options.models, function(model, name) {
-                model_payload = model.constructQueryPayload();
-
-                // Delete a bunch of stuff that we don't need.
-                // XXX constructQueryPayload needs an option to omit these.
-                model_payload.size = 0;
-                delete model_payload.fields;
-                delete model_payload.from;
-                delete model_payload.highlight;
-                delete model_payload.sort;
-
-                // The only aggregation we need is the DATE_AGGREGATION.
-                var index_config = COLLECTIONS_CONFIG[model_payload.index];
-                model_payload.aggs = {};
-                model_payload.aggs[DATE_AGGREGATION] =
-                    index_config.available_aggregations[DATE_AGGREGATION];
-
-                payload.push(model_payload);
+                payload.push(model.constructExportPayload());
             });
             exportForm.html(_.template(exportTemplate)({
                 payload: JSON.stringify(payload)
