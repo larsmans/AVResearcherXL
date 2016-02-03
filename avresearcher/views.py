@@ -324,8 +324,14 @@ def export_cvs():
     results1 = results1["aggregations"][date_aggr]['buckets']
     results2 = results2["aggregations"][date_aggr]['buckets']
 
+    return Response((",".join(map(str, row)) + "\n"
+                     for row in _date_table(results1, results2)),
+                    mimetype='text/csv')
+
+
+def _date_table(results1, results2):
     def year(bucket):
-        return bucket['key_as_string'][:4]
+        return int(bucket['key_as_string'].split('-', 1)[0])
 
     def generate1(buckets):
         for x in buckets:
@@ -344,14 +350,12 @@ def export_cvs():
                 yield x[0], x[1], y[1]
 
     if results1 and results2:
-        csv_data = generate2(results1, results2)
+        # XXX looks like toolz.join undoes our nice sort order. Too bad.
+        return sorted(generate2(results1, results2), key=first)
     elif results1:
-        csv_data = generate1(results1)
+        return generate1(results1)
     else:
-        csv_data = generate1(results2)
-
-    return Response((",".join(map(str, row)) + "\n" for row in csv_data),
-                    mimetype='text/csv')
+        return generate1(results2)
 
 
 @views.route('/api/log_usage', methods=['POST'])
