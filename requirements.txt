@@ -9,4 +9,5 @@ certifi
 blinker==1.3
 raven==5.1.0
 psycopg2==2.5.4
+toolz>=0.7.0
 uWSGI==2.0.7

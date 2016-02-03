@@ -4,9 +4,10 @@ import json
 
 from elasticsearch.helpers import bulk
 from flask import (Blueprint, current_app, render_template, abort, request,
-                   jsonify, url_for)
+                   Response, jsonify, url_for)
 from flask.ext.login import login_user, logout_user, login_required, current_user
 from flask.ext.mail import Message
+from toolz import first, get_in, join
 
 from .extensions import db, mail, bcrypt
 from .models import User
@@ -279,6 +280,52 @@ def count():
     results = current_app.es_search.count(index=index, body=query)
 
     return jsonify(results)
+
+
+@views.route('/api/export', methods=['POST'])
+@login_required
+def export_cvs():
+    payload1, payload2 = json.loads(request.form['payload'])
+
+    config = current_app.config['COLLECTIONS_CONFIG']
+    index1 = config.get(payload1.pop('index'))['index_name']
+    index2 = config.get(payload2.pop('index'))['index_name']
+
+    results1 = current_app.es_search.search(index=index1, body=payload1)
+    results2 = current_app.es_search.search(index=index2, body=payload2)
+
+    date_aggr = current_app.config['DATE_AGGREGATION']
+    results1 = results1["aggregations"][date_aggr]['buckets']
+    results2 = results2["aggregations"][date_aggr]['buckets']
+
+    def year(bucket):
+        return bucket['key_as_string'][:4]
+
+    def generate1(buckets):
+        for x in buckets:
+            count = x['doc_count']
+            if int(count) != 0:
+                yield year(x), x['doc_count']
+
+    def generate2(buckets1, buckets2):
+        for x, y in join(first, generate1(buckets1), first, generate1(buckets2),
+                         left_default=None, right_default=None):
+            if x is None:
+                yield y[0], 0, y[1]
+            elif y is None:
+                yield x[0], x[1], 0
+            else:
+                yield x[0], x[1], y[1]
+
+    if results1 and results2:
+        csv_data = generate2(results1, results2)
+    elif results1:
+        csv_data = generate1(results1)
+    else:
+        csv_data = generate1(results2)
+
+    return Response((",".join(map(str, row)) + "\n" for row in csv_data),
+                    mimetype='text/csv')
 
 
 @views.route('/api/log_usage', methods=['POST'])

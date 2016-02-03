@@ -4,9 +4,10 @@ define([
     'backbone',
     'd3',
     'app',
-    'views/search/results_modal'
+    'views/search/results_modal',
+    'text!../../../templates/csv_export.html'
 ],
-function($, _, Backbone, d3, app, ResultsModal){
+function($, _, Backbone, d3, app, ResultsModal, exportTemplate) {
     var TimeseriesView = Backbone.View.extend({
         initialize: function(options) {
             this.ts_chart = this.chart();
@@ -32,6 +33,7 @@ function($, _, Backbone, d3, app, ResultsModal){
                 model.on('change:aggregations',  self.determineInterval, self);
                 model.on('change:dateHistogram', self.updateTimeseries, self);
                 model.on('change:ftQuery', self.updateLegend, self);
+                model.on('change:ftQuery', self.updateExport, self);
                 model.on('change:totalHits', self.updateLegend, self);
                 model.on('change:totalHits', self.graphVisibility, self);
             });
@@ -109,10 +111,44 @@ function($, _, Backbone, d3, app, ResultsModal){
 
         render: function() {
             if (DEBUG) console.log('TimeSeriesView:render');
-            this.$el.html('<div class="legend"></div><div class="graph"></div>');
+            this.$el.html(  '<div class="legend"></div>'
+                          + '<div class="graph"></div>'
+                          + '<div class="export"></div>'
+                         );
 
             this.legend = this.$el.find('.legend');
             this.chart_width = this.$el.width();
+        },
+
+        // Update the export button that generates a CSV of the graph's
+        // data points. It seems to be impossible to generate a "save as"
+        // dialog for the data we already have from JavaScript, so we need
+        // an extra round-trip to the server.
+        updateExport: function() {
+            var exportForm = this.$el.find('.export');
+            var payload = [];
+            _.each(this.options.models, function(model, name) {
+                model_payload = model.constructQueryPayload();
+
+                // Delete a bunch of stuff that we don't need.
+                // XXX constructQueryPayload needs an option to omit these.
+                model_payload.size = 0;
+                delete model_payload.fields;
+                delete model_payload.from;
+                delete model_payload.highlight;
+                delete model_payload.sort;
+
+                // The only aggregation we need is the DATE_AGGREGATION.
+                var index_config = COLLECTIONS_CONFIG[model_payload.index];
+                model_payload.aggs = {};
+                model_payload.aggs[DATE_AGGREGATION] =
+                    index_config.available_aggregations[DATE_AGGREGATION];
+
+                payload.push(model_payload);
+            });
+            exportForm.html(_.template(exportTemplate)({
+                payload: JSON.stringify(payload)
+            }));
         },
 
         updateLegend: function(e) {
