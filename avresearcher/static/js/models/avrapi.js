@@ -449,7 +449,7 @@ function($, _, Backbone, app){
             });
         },
 
-        constructQueryPayload: function() {
+        constructBasicQuery: function() {
             var filteredQuery = {
                 query: {
                     bool: {
@@ -498,8 +498,8 @@ function($, _, Backbone, app){
                 filteredQuery.query.bool.should.push(qsq);
             }
 
-            // Add the fields of a nested document as a seperate 'should' to the bool
-            // query. Each nested field is added as a seperate 'should'.
+            // Add the fields of a nested document to the bool query.
+            // Each nested field is added as a separate 'should'.
             _.each(nested_fields, function(field_config) {
                 filteredQuery.query.bool.should.push({
                     nested: {
@@ -595,41 +595,39 @@ function($, _, Backbone, app){
                 }
             });
 
-            var highlight = {fields: {}};
-            _.each(enabledFields, function(field) {
-                highlight.fields[field] = {
+            return {
+                index: collection,
+                query: {
+                    filtered: filteredQuery
+                }
+            };
+        },
+
+        constructQueryPayload: function() {
+            var payload = this.constructBasicQuery();
+
+            payload.highlight = {fields: {}};
+            _.each(this.get('enabledSearchFields'), function(field) {
+                payload.highlight.fields[field] = {
                     fragment_size: 150,
                     number_of_fragments: 1,
                     no_match_size: 150
                 };
             });
 
-            return {
-                index: collection,
-                query: {
-                    filtered: filteredQuery
-                },
-                highlight: highlight,
-                aggs: this.get('enabledAggregations'),
-                fields: this.get('requiredFields'),
-                sort: this.get('sort'),
-                size: this.get('hitsPerPage'),
-                from: this.get('startAtHit')
-            };
+            payload.aggs = this.get('enabledAggregations');
+            payload.fields = this.get('requiredFields');
+            payload.sort = this.get('sort');
+            payload.size = this.get('hitsPerPage');
+            payload.from = this.get('startAtHit');
+
+            return payload;
         },
 
         // Construct payload for CSV export.
         constructExportPayload: function() {
             var self = this;
-            var payload = this.constructQueryPayload();
-
-            // Delete attributes not needed for CSV export.
-            // XXX refactor me.
-            delete payload.fields;
-            delete payload.from;
-            delete payload.highlight;
-            delete payload.size;
-            delete payload.sort;
+            var payload = this.constructBasicQuery();
 
             // The only aggregation we want is the DATE_AGGREGATION.
             var index_config = COLLECTIONS_CONFIG[payload.index];
