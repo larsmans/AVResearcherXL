@@ -369,7 +369,7 @@ def log_usage():
     user_id = getattr(current_user, 'id', 'anonymous')  # For LOGIN_DISABLED.
     bulk(current_app.es_log,
          _gen_bulk_events(json.loads(request.form['events']),
-                          user_id=current_user.id,
+                          user_id=user_id,
                           log_index=current_app.config['ES_LOG_INDEX']),
          stats_only=True)   # Don't care about errors.
 
