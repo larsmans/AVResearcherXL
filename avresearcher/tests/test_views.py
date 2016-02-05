@@ -66,6 +66,6 @@ def test_gen_csv_filename():
                  u'fields': [u'article_dc_title', u'text_content'],
                  u'query': u''}}]}}}}}
 
-    assert_equal("kb_waarom", _gen_csv_filename(p1, p2))
-    assert_equal("kb_waarom", _gen_csv_filename(p2, p1))
-    assert_equal("kb_waarom_kb_waarom", _gen_csv_filename(p1, p1))
+    assert_equal("kb_waarom.csv", _gen_csv_filename(p1, p2))
+    assert_equal("kb_waarom.csv", _gen_csv_filename(p2, p1))
+    assert_equal("kb_waarom_kb_waarom.csv", _gen_csv_filename(p1, p1))

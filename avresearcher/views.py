@@ -347,8 +347,8 @@ def _gen_csv_filename(payload1, payload2):
     if not q2:
         index2 = ""
 
-    return slugify_filename(" ".join([index1, _find_qstring(payload1),
-                                      index2, _find_qstring(payload2)]))
+    return slugify_filename(" ".join(part for part in [index1, q1, index2, q2]
+                                          if part)) + '.csv'
 
 
 def _find_qstring(payload):
