@@ -7,6 +7,7 @@ from flask import (Blueprint, current_app, render_template, abort, request,
                    Response, jsonify, url_for)
 from flask.ext.login import login_user, logout_user, login_required, current_user
 from flask.ext.mail import Message
+from slugify import slugify_filename
 from toolz import first, get_in, join
 
 from .extensions import db, mail, bcrypt
@@ -310,6 +311,8 @@ def count():
 def export_cvs():
     payload1, payload2 = json.loads(request.form['payload'])
 
+    filename = _gen_csv_filename(payload1, payload2)
+
     payload1['size'] = 0
     payload2['size'] = 0
 
@@ -326,7 +329,47 @@ def export_cvs():
 
     return Response((",".join(map(str, row)) + "\n"
                      for row in _date_table(results1, results2)),
+                    headers={"Content-Disposition":
+                             "attachment; filename=%s" % filename},
                     mimetype='text/csv')
+
+
+def _gen_csv_filename(payload1, payload2):
+    # Generate a pretty filename for our CSV dump.
+    index1 = payload1['index']
+    index2 = payload2['index']
+
+    q1 = _find_qstring(payload1)
+    q2 = _find_qstring(payload2)
+
+    if not q1:
+        index1 = ""
+    if not q2:
+        index2 = ""
+
+    return slugify_filename(" ".join([index1, _find_qstring(payload1),
+                                      index2, _find_qstring(payload2)]))
+
+
+def _find_qstring(payload):
+    # Find the query_string in haystack. This may look like a brute-force
+    # approach, but it's robust against changes in the query structure.
+
+    def dfs(needle, haystack):
+        if hasattr(haystack, "iteritems"):
+            for k, v in haystack.iteritems():
+                if k == needle:
+                    yield v
+                for r in dfs(needle, v):
+                    yield r
+        elif isinstance(haystack, (list, tuple)):
+            # The check is for (list, tuple) because Iterable matches strings.
+            for x in haystack:
+                for r in dfs(needle, x):
+                    yield r
+
+    payload = next(dfs('query_string', payload))
+    return next(dfs('query', payload))
 
 
 def _date_table(results1, results2):
