@@ -2,6 +2,10 @@ body {
     background: #C7C2BA;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 .ir {
     display: block;
     text-indent: -999em;

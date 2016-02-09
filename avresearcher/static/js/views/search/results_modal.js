@@ -47,6 +47,8 @@ function($, _, Backbone, app, ResultsListView, PaginatorView, AvrApiModel, resul
         },
 
         render: function() {
+            $('body').addClass('modal-open');
+
             this.el.addClass(this.model.get('name'));
             this.$el.html(_.template(resultsModalTemplate)({
                 query: this.model.get('queryString'),
@@ -64,6 +66,8 @@ function($, _, Backbone, app, ResultsListView, PaginatorView, AvrApiModel, resul
         },
 
         closeModal: function() {
+            $('body').removeClass('modal-open');
+
             this.$el.find('#results_modal').modal('hide');
 
             this.unbind();
