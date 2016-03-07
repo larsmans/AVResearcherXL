@@ -3,9 +3,12 @@ AVResearcherXL
 
 AVResearcherXL is a tool based on `AVResearcher <https://github.com/beeldengeluid/audiovisual-researcher>`_, a prototype aimed at allowing media researchers to explore metadata associated with large numbers of audiovisual broadcasts. AVResearcher allows them to compare and contrast the characteristics of search results for two topics, across time and in terms of content. Broadcasts can be searched and compared not only on the basis of traditional catalog descriptions, but also in terms of spoken content (subtitles), and social chatter (tweets associated with broadcasts). AVResearcher is a new and ongoing valorisation project at the Netherlands Institute for Sound and Vision. `more details <http://ceur-ws.org/Vol-986/paper_27.pdf>`_
 
- In addition to the exploration of audiovisual broadcasts, AVResearcherXL allows users to search and compare different document collections. AVResearcherXL also implements a new design, the option to show relative counts on its timeline visualisation and multiple views on result sets.
+In addition to the exploration of audiovisual broadcasts, AVResearcherXL allows users to search and compare different document collections. AVResearcherXL also implements a new design, the option to show relative counts on its timeline visualisation and multiple views on result sets.
 
 AVResearcherXL is developed by `Dispectu B.V. <http://dispectu.com>`_.
+
+.. image::
+    screenshot.png
 
 Requirements
 ------------
